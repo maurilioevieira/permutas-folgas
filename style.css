@@ -1,0 +1,322 @@
+:root {
+  --navy: #1A2B5E;
+  --navy-dark: #10193d;
+  --gold: #C8A84B;
+  --gold-light: #e6d5a0;
+  --bg: #f4f2ec;
+  --white: #ffffff;
+  --danger: #b3413a;
+  --text: #21273a;
+  --radius: 10px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.hidden { display: none !important; }
+
+/* ---------- TELA DE LOGIN (PIN) ---------- */
+
+#tela-login {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, var(--navy) 0%, var(--navy-dark) 100%);
+  color: var(--white);
+  padding: 24px;
+}
+
+#tela-login h1 {
+  color: var(--gold);
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+  font-size: 22px;
+  text-align: center;
+}
+
+#tela-login p.subtitulo {
+  color: #cfd6ec;
+  margin-top: 0;
+  margin-bottom: 24px;
+  font-size: 13px;
+}
+
+#pin-display {
+  width: 220px;
+  text-align: center;
+  font-size: 30px;
+  letter-spacing: 12px;
+  border: 2px solid var(--gold);
+  border-radius: var(--radius);
+  padding: 12px 0;
+  margin-bottom: 20px;
+  background: rgba(255,255,255,0.05);
+  color: var(--white);
+  min-height: 24px;
+}
+
+#pin-erro {
+  color: #ff9d95;
+  min-height: 18px;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.pin-pad {
+  display: grid;
+  grid-template-columns: repeat(3, 70px);
+  gap: 12px;
+}
+
+.pin-pad button {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  border: 1px solid var(--gold);
+  background: rgba(255,255,255,0.06);
+  color: var(--white);
+  font-size: 22px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.pin-pad button:hover { background: var(--gold); color: var(--navy); }
+
+.pin-pad button.acao {
+  border-color: transparent;
+  font-size: 14px;
+  background: transparent;
+}
+
+/* ---------- APP PRINCIPAL ---------- */
+
+#app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+header.topo {
+  background: var(--navy);
+  color: var(--white);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+header.topo h1 { font-size: 16px; margin: 0; color: var(--gold); }
+header.topo .usuario { font-size: 13px; color: #cfd6ec; }
+header.topo button#btn-sair {
+  background: transparent;
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+nav.abas {
+  display: flex;
+  gap: 4px;
+  background: var(--navy-dark);
+  padding: 0 20px;
+  overflow-x: auto;
+}
+
+nav.abas button {
+  background: transparent;
+  border: none;
+  color: #cfd6ec;
+  padding: 12px 16px;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+nav.abas button.ativa {
+  color: var(--gold);
+  border-bottom: 3px solid var(--gold);
+  font-weight: bold;
+}
+
+main.conteudo {
+  flex: 1;
+  padding: 20px;
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.barra-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+  align-items: center;
+}
+
+.barra-acoes input[type="date"] {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: var(--radius);
+}
+
+button.btn-principal {
+  background: var(--navy);
+  color: var(--gold);
+  border: none;
+  padding: 10px 18px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-weight: bold;
+}
+
+button.btn-principal:hover { background: var(--navy-dark); }
+
+button.btn-secundario {
+  background: var(--white);
+  color: var(--navy);
+  border: 1px solid var(--navy);
+  padding: 10px 18px;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+button.btn-perigo {
+  background: var(--white);
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  padding: 6px 10px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 12px;
+}
+
+table.tabela-dados {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--white);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+table.tabela-dados th {
+  background: var(--navy);
+  color: var(--gold);
+  padding: 10px;
+  text-align: left;
+  font-size: 13px;
+}
+
+table.tabela-dados td {
+  padding: 9px 10px;
+  border-bottom: 1px solid #eee;
+  font-size: 13px;
+}
+
+table.tabela-dados tr:hover { background: #faf8f2; }
+
+/* ---------- MODAL ---------- */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(16,25,61,0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 100;
+}
+
+.modal {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 24px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal h2 { color: var(--navy); margin-top: 0; border-bottom: 2px solid var(--gold); padding-bottom: 8px; }
+
+.campo { margin-bottom: 14px; position: relative; }
+.campo label { display: block; font-size: 13px; margin-bottom: 4px; color: var(--navy); font-weight: bold; }
+.campo input, .campo select {
+  width: 100%;
+  padding: 9px;
+  border: 1px solid #ccc;
+  border-radius: var(--radius);
+  font-size: 14px;
+}
+
+.modal-acoes { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+
+/* ---------- AUTOCOMPLETE ---------- */
+
+.autocomplete-lista {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--white);
+  border: 1px solid #ccc;
+  border-top: none;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 50;
+  border-radius: 0 0 var(--radius) var(--radius);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.autocomplete-lista div {
+  padding: 8px 10px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.autocomplete-lista div:hover { background: var(--gold-light); }
+
+/* ---------- ADMIN ---------- */
+
+.grid-admin {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.cartao-admin {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.cartao-admin h3 { color: var(--navy); margin-top: 0; }
+
+.lista-simples { list-style: none; padding: 0; margin: 0; }
+.lista-simples li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid #eee;
+  font-size: 13px;
+}
+
+.form-inline { display: flex; gap: 6px; margin-top: 10px; }
+.form-inline input { flex: 1; padding: 7px; border: 1px solid #ccc; border-radius: var(--radius); }
+
+.mensagem-vazio { color: #888; font-style: italic; font-size: 13px; padding: 10px 0; }

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Controle de Permutas — GCM Iguatu</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ===================== TELA DE LOGIN (PIN) ===================== -->
+<div id="tela-login">
+  <h1>CONTROLE DE PERMUTAS</h1>
+  <p class="subtitulo">GCM Iguatu — Acesso restrito</p>
+  <div id="pin-display"></div>
+  <div id="pin-erro"></div>
+  <div class="pin-pad">
+    <button data-num="1">1</button>
+    <button data-num="2">2</button>
+    <button data-num="3">3</button>
+    <button data-num="4">4</button>
+    <button data-num="5">5</button>
+    <button data-num="6">6</button>
+    <button data-num="7">7</button>
+    <button data-num="8">8</button>
+    <button data-num="9">9</button>
+    <button class="acao" id="btn-limpar">Limpar</button>
+    <button data-num="0">0</button>
+    <button class="acao" id="btn-apagar">⌫</button>
+  </div>
+</div>
+
+<!-- ===================== APP PRINCIPAL ===================== -->
+<div id="app" class="hidden">
+  <header class="topo">
+    <h1>Controle de Permutas — GCM Iguatu</h1>
+    <div>
+      <span class="usuario" id="usuario-logado"></span>
+      <button id="btn-sair">Sair</button>
+    </div>
+  </header>
+
+  <nav class="abas">
+    <button data-aba="permutas" class="ativa">Permutas</button>
+    <button data-aba="admin" id="aba-admin-botao" class="hidden">Painel Admin</button>
+  </nav>
+
+  <main class="conteudo">
+
+    <!-- ---------- ABA PERMUTAS ---------- -->
+    <section id="secao-permutas">
+      <div class="barra-acoes">
+        <label>De: <input type="date" id="filtro-data-inicio"></label>
+        <label>Até: <input type="date" id="filtro-data-fim"></label>
+        <button class="btn-secundario" id="btn-filtrar">Filtrar</button>
+        <button class="btn-secundario" id="btn-limpar-filtro">Limpar filtro</button>
+        <button class="btn-principal" id="btn-nova-permuta">+ Nova Permuta</button>
+        <button class="btn-secundario" id="btn-pdf-permutas">📄 PDF de Permutas</button>
+        <button class="btn-secundario" id="btn-pdf-combinado">📄 PDF Permutas + Folgas</button>
+      </div>
+      <table class="tabela-dados">
+        <thead>
+          <tr>
+            <th>Data</th><th>Posto</th><th>Turno</th><th>Escalado</th><th>Substituto</th>
+            <th>HP</th><th>Recebido</th><th>Recebido por</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="corpo-tabela-permutas"></tbody>
+      </table>
+    </section>
+
+    <!-- ---------- ABA ADMIN ---------- -->
+    <section id="secao-admin" class="hidden">
+      <div class="grid-admin">
+        <div class="cartao-admin">
+          <h3>Postos</h3>
+          <ul class="lista-simples" id="lista-postos"></ul>
+          <form class="form-inline" id="form-add-posto">
+            <input type="text" id="input-novo-posto" placeholder="Novo posto" required>
+            <button class="btn-principal" type="submit">+</button>
+          </form>
+        </div>
+
+        <div class="cartao-admin">
+          <h3>Turnos</h3>
+          <ul class="lista-simples" id="lista-turnos"></ul>
+          <form class="form-inline" id="form-add-turno">
+            <input type="text" id="input-novo-turno" placeholder="Nome do turno" required>
+            <input type="number" id="input-novo-turno-horas" placeholder="Horas" style="max-width:70px" required>
+            <button class="btn-principal" type="submit">+</button>
+          </form>
+        </div>
+
+        <div class="cartao-admin">
+          <h3>Recebido por</h3>
+          <ul class="lista-simples" id="lista-recebido-por"></ul>
+          <form class="form-inline" id="form-add-recebido-por">
+            <input type="text" id="input-novo-recebido-por" placeholder="Nome" required>
+            <button class="btn-principal" type="submit">+</button>
+          </form>
+        </div>
+
+        <div class="cartao-admin">
+          <h3>Funcionários</h3>
+          <ul class="lista-simples" id="lista-funcionarios"></ul>
+          <form id="form-add-funcionario" style="margin-top:10px; display:flex; flex-direction:column; gap:6px;">
+            <input type="text" id="input-func-nome" placeholder="Nome completo" required>
+            <input type="text" id="input-func-classe" placeholder="Classe (ex: GCM 3° CLASSE)" required>
+            <input type="text" id="input-func-qra" placeholder="QRA (ex: GCM 3° CLASSE SILVA)" required>
+            <input type="email" id="input-func-email" placeholder="Email (opcional)">
+            <button class="btn-principal" type="submit">Adicionar funcionário</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ===================== MODAL — NOVA/EDITAR PERMUTA ===================== -->
+<div id="modal-permuta" class="overlay hidden">
+  <div class="modal">
+    <h2 id="modal-permuta-titulo">Nova Permuta</h2>
+    <form id="form-permuta">
+      <input type="hidden" id="permuta-id">
+      <div class="campo">
+        <label>Data</label>
+        <input type="date" id="permuta-data" required>
+      </div>
+      <div class="campo">
+        <label>Posto</label>
+        <select id="permuta-posto" required></select>
+      </div>
+      <div class="campo">
+        <label>Turno</label>
+        <select id="permuta-turno" required></select>
+      </div>
+      <div class="campo">
+        <label>Escalado</label>
+        <input type="text" id="permuta-escalado-busca" placeholder="Digite para buscar..." autocomplete="off" required>
+        <input type="hidden" id="permuta-escalado-valor">
+        <div class="autocomplete-lista hidden" id="lista-autocomplete-escalado"></div>
+      </div>
+      <div class="campo">
+        <label>Substituto</label>
+        <input type="text" id="permuta-substituto-busca" placeholder="Digite para buscar..." autocomplete="off" required>
+        <input type="hidden" id="permuta-substituto-valor">
+        <div class="autocomplete-lista hidden" id="lista-autocomplete-substituto"></div>
+      </div>
+      <div class="campo">
+        <label>Recebido (data)</label>
+        <input type="date" id="permuta-recebido">
+      </div>
+      <div class="campo">
+        <label>Recebido por</label>
+        <select id="permuta-recebido-por"></select>
+      </div>
+      <div class="modal-acoes">
+        <button type="button" class="btn-secundario" id="btn-cancelar-permuta">Cancelar</button>
+        <button type="submit" class="btn-principal">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
