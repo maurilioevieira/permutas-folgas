@@ -17,6 +17,7 @@ body {
   font-family: 'Segoe UI', Arial, sans-serif;
   background: var(--bg);
   color: var(--text);
+  font-size: 16px;
 }
 
 .hidden { display: none !important; }
@@ -46,7 +47,7 @@ body {
   color: #cfd6ec;
   margin-top: 0;
   margin-bottom: 24px;
-  font-size: 13px;
+  font-size: 15px;
 }
 
 #pin-display {
@@ -113,8 +114,8 @@ header.topo {
   justify-content: space-between;
 }
 
-header.topo h1 { font-size: 16px; margin: 0; color: var(--gold); }
-header.topo .usuario { font-size: 13px; color: #cfd6ec; }
+header.topo h1 { font-size: 18px; margin: 0; color: var(--gold); }
+header.topo .usuario { font-size: 15px; color: #cfd6ec; }
 header.topo button#btn-sair {
   background: transparent;
   border: 1px solid var(--gold);
@@ -139,7 +140,7 @@ nav.abas button {
   padding: 12px 16px;
   cursor: pointer;
   border-bottom: 3px solid transparent;
-  font-size: 14px;
+  font-size: 16px;
   white-space: nowrap;
 }
 
@@ -196,19 +197,61 @@ button.btn-perigo {
   background: var(--white);
   color: var(--danger);
   border: 1px solid var(--danger);
-  padding: 6px 10px;
+  padding: 7px 11px;
   border-radius: var(--radius);
   cursor: pointer;
-  font-size: 12px;
+  font-size: 14px;
+}
+
+/* ---------- RESPONSIVIDADE (telas pequenas / celular) ----------
+   Estas regras só entram em ação abaixo de 768px de largura.
+   A versão para telas grandes (desktop) não é afetada. */
+@media (max-width: 768px) {
+  header.topo {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  header.topo h1 { font-size: 16px; }
+
+  main.conteudo { padding: 12px; }
+
+  .barra-acoes {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .barra-acoes label { display: flex; flex-direction: column; font-size: 14px; }
+  .barra-acoes input[type="date"] { width: 100%; }
+
+  .barra-acoes button {
+    width: 100%;
+  }
+
+  table.tabela-dados { min-width: 720px; } /* mantém colunas legíveis; a rolagem horizontal do .tabela-wrapper cuida do resto */
+
+  .modal { padding: 16px; }
+
+  .grid-admin { grid-template-columns: 1fr; }
+
+  .pin-pad { grid-template-columns: repeat(3, 64px); gap: 10px; }
+  .pin-pad button { width: 64px; height: 64px; font-size: 20px; }
+}
+
+.tabela-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
 }
 
 table.tabela-dados {
   width: 100%;
   border-collapse: collapse;
   background: var(--white);
-  border-radius: var(--radius);
   overflow: hidden;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
 }
 
 table.tabela-dados th {
@@ -216,13 +259,14 @@ table.tabela-dados th {
   color: var(--gold);
   padding: 10px;
   text-align: left;
-  font-size: 13px;
+  font-size: 15px;
+  white-space: nowrap;
 }
 
 table.tabela-dados td {
   padding: 9px 10px;
   border-bottom: 1px solid #eee;
-  font-size: 13px;
+  font-size: 15px;
 }
 
 table.tabela-dados tr:hover { background: #faf8f2; }
@@ -253,13 +297,13 @@ table.tabela-dados tr:hover { background: #faf8f2; }
 .modal h2 { color: var(--navy); margin-top: 0; border-bottom: 2px solid var(--gold); padding-bottom: 8px; }
 
 .campo { margin-bottom: 14px; position: relative; }
-.campo label { display: block; font-size: 13px; margin-bottom: 4px; color: var(--navy); font-weight: bold; }
+.campo label { display: block; font-size: 15px; margin-bottom: 4px; color: var(--navy); font-weight: bold; }
 .campo input, .campo select {
   width: 100%;
-  padding: 9px;
+  padding: 10px;
   border: 1px solid #ccc;
   border-radius: var(--radius);
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .modal-acoes { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
@@ -282,9 +326,9 @@ table.tabela-dados tr:hover { background: #faf8f2; }
 }
 
 .autocomplete-lista div {
-  padding: 8px 10px;
+  padding: 9px 10px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 15px;
 }
 
 .autocomplete-lista div:hover { background: var(--gold-light); }
@@ -311,12 +355,12 @@ table.tabela-dados tr:hover { background: #faf8f2; }
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 0;
+  padding: 7px 0;
   border-bottom: 1px solid #eee;
-  font-size: 13px;
+  font-size: 15px;
 }
 
 .form-inline { display: flex; gap: 6px; margin-top: 10px; }
-.form-inline input { flex: 1; padding: 7px; border: 1px solid #ccc; border-radius: var(--radius); }
+.form-inline input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: var(--radius); font-size: 15px; }
 
-.mensagem-vazio { color: #888; font-style: italic; font-size: 13px; padding: 10px 0; }
+.mensagem-vazio { color: #888; font-style: italic; font-size: 15px; padding: 10px 0; }
