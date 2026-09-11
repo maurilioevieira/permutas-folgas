@@ -309,21 +309,39 @@ configurarAutocomplete('permuta-escalado-busca', 'permuta-escalado-valor', 'list
 configurarAutocomplete('permuta-substituto-busca', 'permuta-substituto-valor', 'lista-autocomplete-substituto');
 
 // ================= GERAÇÃO DE PDF =================
-async function gerarEBaixarPdf(action) {
+async function gerarEBaixarPdf(action, botao) {
+  const textoOriginal = botao.textContent;
+  botao.disabled = true;
+  botao.textContent = 'Gerando PDF... (pode levar alguns segundos)';
+
   const ini = document.getElementById('filtro-data-inicio').value;
   const fim = document.getElementById('filtro-data-fim').value;
+  const payload = { dataInicio: isoParaBR(ini), dataFim: isoParaBR(fim || ini) };
+
   try {
-    const dados = await chamarApi(action, { dataInicio: isoParaBR(ini), dataFim: isoParaBR(fim || ini) });
+    let dados;
+    try {
+      dados = await chamarApi(action, payload);
+    } catch (primeiroErro) {
+      // Primeira chamada após o script ficar inativo pode demorar ou falhar (cold start do Apps Script).
+      // Tenta uma segunda vez automaticamente antes de mostrar erro ao usuário.
+      botao.textContent = 'Ainda gerando, tentando novamente...';
+      dados = await chamarApi(action, payload);
+    }
+    if (!dados || !dados.base64) throw new Error('O servidor não retornou o PDF corretamente.');
     const link = document.createElement('a');
     link.href = 'data:application/pdf;base64,' + dados.base64;
     link.download = dados.nomeArquivo;
     link.click();
   } catch (e) {
-    alert('Erro ao gerar PDF: ' + e.message);
+    alert('Erro ao gerar PDF: ' + e.message + '\n\nSe o erro persistir, aguarde alguns segundos e tente novamente — o Google às vezes demora para "acordar" o script depois de um tempo parado.');
+  } finally {
+    botao.disabled = false;
+    botao.textContent = textoOriginal;
   }
 }
-document.getElementById('btn-pdf-permutas').addEventListener('click', () => gerarEBaixarPdf('gerarPdfPermutas'));
-document.getElementById('btn-pdf-combinado').addEventListener('click', () => gerarEBaixarPdf('gerarPdfPermutasFolgas'));
+document.getElementById('btn-pdf-permutas').addEventListener('click', (ev) => gerarEBaixarPdf('gerarPdfPermutas', ev.target));
+document.getElementById('btn-pdf-combinado').addEventListener('click', (ev) => gerarEBaixarPdf('gerarPdfPermutasFolgas', ev.target));
 
 // ================= LISTAGEM DE FOLGAS =================
 async function carregarFolgas(filtro = {}) {
