@@ -5,7 +5,7 @@
  * IMPORTANTE: substitua API_URL abaixo pela URL da implantação do seu Apps Script
  * (Implantar > Nova implantação > Aplicativo da Web > copiar URL).
  */
-const API_URL = 'COLE_AQUI_A_URL_DO_SEU_APPS_SCRIPT';
+const API_URL = 'https://script.google.com/macros/s/AKfycbyXdzgDFlPB1g0xrKS9veWOScBXSP96f4FMuJ_13Rd1OXfMyqHcgfil5Jw5sjHFMsyH/exec';
 
 // ---------- ESTADO GLOBAL ----------
 let usuario = JSON.parse(localStorage.getItem('permutas_usuario') || 'null');
