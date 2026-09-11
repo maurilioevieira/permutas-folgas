@@ -152,6 +152,8 @@ async function carregarListasBase() {
   preencherSelect('permuta-turno', cacheTurnos.map(t => t.TURNO));
   preencherSelect('permuta-recebido-por', cacheRecebidoPor);
   preencherSelect('folga-posto', cachePostos);
+  preencherSelect('lote-posto', cachePostos);
+  preencherSelect('lote-recebido-por', cacheRecebidoPor);
 }
 
 function preencherSelect(idSelect, valores) {
@@ -306,6 +308,100 @@ async function excluirPermuta(id) {
     alert('Erro ao excluir: ' + e.message);
   }
 }
+
+// ================= CADASTRO EM LOTE (VÁRIAS PERMUTAS DE UMA VEZ) =================
+const MAX_LINHAS_LOTE = 5;
+const modalLote = document.getElementById('modal-lote');
+const containerLinhasLote = document.getElementById('lote-linhas');
+
+function criarLinhaLote() {
+  const div = document.createElement('div');
+  div.className = 'linha-lote';
+  const opcoesTurno = cacheTurnos.map(t => `<option value="${t.TURNO}">${t.TURNO}</option>`).join('');
+  div.innerHTML = `
+    <div class="campo-inline">
+      <label>Data</label>
+      <input type="date" class="lote-data" required>
+    </div>
+    <div class="campo-inline">
+      <label>Turno</label>
+      <select class="lote-turno" required><option value="">Selecione...</option>${opcoesTurno}</select>
+    </div>
+    <button type="button" class="btn-perigo btn-remover-linha">×</button>
+  `;
+  div.querySelector('.btn-remover-linha').addEventListener('click', () => {
+    if (containerLinhasLote.children.length > 1) {
+      div.remove();
+      atualizarBotaoAddLinha();
+    }
+  });
+  return div;
+}
+
+function atualizarBotaoAddLinha() {
+  const btn = document.getElementById('btn-add-linha-lote');
+  btn.disabled = containerLinhasLote.children.length >= MAX_LINHAS_LOTE;
+  btn.textContent = btn.disabled ? 'Limite de 5 datas atingido' : '+ Adicionar outra data';
+}
+
+document.getElementById('btn-add-linha-lote').addEventListener('click', () => {
+  if (containerLinhasLote.children.length < MAX_LINHAS_LOTE) {
+    containerLinhasLote.appendChild(criarLinhaLote());
+    atualizarBotaoAddLinha();
+  }
+});
+
+document.getElementById('btn-lote-permutas').addEventListener('click', () => {
+  document.getElementById('form-lote').reset();
+  document.getElementById('lote-escalado-valor').value = '';
+  document.getElementById('lote-substituto-valor').value = '';
+  containerLinhasLote.innerHTML = '';
+  containerLinhasLote.appendChild(criarLinhaLote());
+  atualizarBotaoAddLinha();
+  modalLote.classList.remove('hidden');
+});
+document.getElementById('btn-cancelar-lote').addEventListener('click', () => modalLote.classList.add('hidden'));
+
+configurarAutocomplete('lote-escalado-busca', 'lote-escalado-valor', 'lista-autocomplete-lote-escalado');
+configurarAutocomplete('lote-substituto-busca', 'lote-substituto-valor', 'lista-autocomplete-lote-substituto');
+
+document.getElementById('form-lote').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const comum = {
+    posto: document.getElementById('lote-posto').value,
+    escalado: document.getElementById('lote-escalado-valor').value,
+    substituto: document.getElementById('lote-substituto-valor').value,
+    recebido: isoParaBR(document.getElementById('lote-recebido').value),
+    recebidoPor: document.getElementById('lote-recebido-por').value,
+    usuarioNome: usuario.nome
+  };
+
+  const linhas = Array.from(containerLinhasLote.querySelectorAll('.linha-lote')).map(linha => ({
+    data: isoParaBR(linha.querySelector('.lote-data').value),
+    turno: linha.querySelector('.lote-turno').value
+  }));
+
+  const botaoSalvar = ev.target.querySelector('button[type="submit"]');
+  const textoOriginal = botaoSalvar.textContent;
+  botaoSalvar.disabled = true;
+  let salvas = 0;
+
+  try {
+    for (const linha of linhas) {
+      botaoSalvar.textContent = `Salvando ${salvas + 1} de ${linhas.length}...`;
+      await chamarApi('addPermuta', { ...comum, ...linha, idClienteNovo: gerarIdCliente() });
+      salvas++;
+    }
+    modalLote.classList.add('hidden');
+    await carregarPermutas();
+  } catch (e) {
+    alert(`Foram salvas ${salvas} de ${linhas.length} permutas antes do erro:\n\n${e.message}\n\nAs que já foram salvas continuam válidas — corrija a data/turno restante e cadastre separadamente se precisar.`);
+    await carregarPermutas();
+  } finally {
+    botaoSalvar.disabled = false;
+    botaoSalvar.textContent = textoOriginal;
+  }
+});
 
 // ================= AUTOCOMPLETE (ESCALADO / SUBSTITUTO) =================
 function configurarAutocomplete(idBusca, idValor, idLista) {

@@ -71,6 +71,7 @@
         <button class="btn-secundario" id="btn-filtrar">Filtrar</button>
         <button class="btn-secundario" id="btn-limpar-filtro">Limpar filtro</button>
         <button class="btn-principal" id="btn-nova-permuta">+ Nova Permuta</button>
+        <button class="btn-principal" id="btn-lote-permutas">+ Várias Permutas</button>
         <button class="btn-secundario" id="btn-pdf-permutas">📄 PDF de Permutas</button>
         <button class="btn-secundario" id="btn-pdf-combinado">📄 PDF Permutas + Folgas</button>
       </div>
@@ -250,6 +251,53 @@
       <div class="modal-acoes">
         <button type="button" class="btn-secundario" id="btn-cancelar-folga">Cancelar</button>
         <button type="submit" class="btn-principal">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===================== MODAL — VÁRIAS PERMUTAS DE UMA VEZ ===================== -->
+<div id="modal-lote" class="overlay hidden">
+  <div class="modal">
+    <h2>Cadastrar Várias Permutas</h2>
+    <p style="font-size:13px; color:#666; margin-top:-8px;">
+      Use quando o mesmo agente solicitar várias datas/turnos de uma vez (até 120h, no total de 5 turnos de 24h).
+    </p>
+    <form id="form-lote">
+      <div class="campo">
+        <label>Posto</label>
+        <select id="lote-posto" required></select>
+      </div>
+      <div class="campo">
+        <label>Escalado</label>
+        <input type="text" id="lote-escalado-busca" placeholder="Digite para buscar..." autocomplete="off" required>
+        <input type="hidden" id="lote-escalado-valor">
+        <div class="autocomplete-lista hidden" id="lista-autocomplete-lote-escalado"></div>
+      </div>
+      <div class="campo">
+        <label>Substituto</label>
+        <input type="text" id="lote-substituto-busca" placeholder="Digite para buscar..." autocomplete="off" required>
+        <input type="hidden" id="lote-substituto-valor">
+        <div class="autocomplete-lista hidden" id="lista-autocomplete-lote-substituto"></div>
+      </div>
+      <div class="campo">
+        <label>Recebido (data)</label>
+        <input type="date" id="lote-recebido">
+      </div>
+      <div class="campo">
+        <label>Recebido por</label>
+        <select id="lote-recebido-por"></select>
+      </div>
+
+      <label style="display:block; font-weight:bold; color:var(--navy); margin:16px 0 8px; font-size:14px;">
+        Datas e turnos (até 5)
+      </label>
+      <div id="lote-linhas"></div>
+      <button type="button" class="btn-secundario" id="btn-add-linha-lote">+ Adicionar outra data</button>
+
+      <div class="modal-acoes">
+        <button type="button" class="btn-secundario" id="btn-cancelar-lote">Cancelar</button>
+        <button type="submit" class="btn-principal">Salvar todas</button>
       </div>
     </form>
   </div>

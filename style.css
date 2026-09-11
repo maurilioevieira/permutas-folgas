@@ -416,3 +416,27 @@ table.tabela-dados tr:hover { background: #faf8f2; }
 .hp-verde { background: #DFF5DF; color: #1a5c1a; }
 .hp-laranja { background: #FFDCA0; color: #7a4a00; }
 .hp-vermelho { background: #C0392B; color: #ffffff; }
+
+/* ---------- CADASTRO EM LOTE DE PERMUTAS ---------- */
+
+.linha-lote {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  margin-bottom: 10px;
+}
+
+.linha-lote .campo-inline { flex: 1; margin-bottom: 0; }
+.linha-lote .campo-inline label { display:block; font-size: 12px; margin-bottom: 4px; color: var(--navy); font-weight: bold; }
+.linha-lote .campo-inline input, .linha-lote .campo-inline select {
+  width: 100%;
+  padding: 9px;
+  border: 1px solid #ccc;
+  border-radius: var(--radius);
+  font-size: 15px;
+}
+
+.linha-lote .btn-remover-linha {
+  height: 40px;
+  padding: 0 12px;
+}
