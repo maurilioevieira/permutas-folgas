@@ -18,16 +18,29 @@ let cachePermutas = [];
 let cacheFolgas = [];
 
 // ---------- COMUNICAÇÃO COM O BACKEND ----------
-async function chamarApi(action, payload = {}) {
+async function chamarApi(action, payload = {}, tentandoNovamente = false) {
   if (usuario) payload.pin = usuario.pin;
-  const resp = await fetch(API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // evita preflight CORS no Apps Script
-    body: JSON.stringify({ action, payload })
-  });
-  const json = await resp.json();
-  if (!json.ok) throw new Error(json.erro || 'Erro desconhecido.');
-  return json.data;
+  try {
+    const resp = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // evita preflight CORS no Apps Script
+      body: JSON.stringify({ action, payload })
+    });
+    const json = await resp.json();
+    if (!json.ok) throw new Error(json.erro || 'Erro desconhecido.');
+    return json.data;
+  } catch (erro) {
+    // O Apps Script pode falhar na primeira chamada após ficar inativo ("cold start").
+    // Tenta uma segunda vez automaticamente antes de reportar erro ao usuário.
+    if (!tentandoNovamente) return chamarApi(action, payload, true);
+    throw erro;
+  }
+}
+
+// Gera um identificador único no navegador, usado para evitar cadastros duplicados
+// caso a mesma requisição de cadastro seja enviada mais de uma vez (ex: retry automático).
+function gerarIdCliente() {
+  return (crypto.randomUUID ? crypto.randomUUID() : 'id-' + Date.now() + '-' + Math.random().toString(16).slice(2));
 }
 
 // ---------- CONVERSÃO DE DATAS (input HTML usa yyyy-mm-dd; backend usa dd/mm/yyyy) ----------
@@ -76,15 +89,20 @@ async function tentarLogin() {
 }
 
 // login não usa `usuario.pin` (ainda não existe), então chama a API direto
-async function chamarApiSemAuth(action, payload) {
-  const resp = await fetch(API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify({ action, payload })
-  });
-  const json = await resp.json();
-  if (!json.ok) throw new Error(json.erro || 'Erro desconhecido.');
-  return json.data;
+async function chamarApiSemAuth(action, payload, tentandoNovamente = false) {
+  try {
+    const resp = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action, payload })
+    });
+    const json = await resp.json();
+    if (!json.ok) throw new Error(json.erro || 'Erro desconhecido.');
+    return json.data;
+  } catch (erro) {
+    if (!tentandoNovamente) return chamarApiSemAuth(action, payload, true);
+    throw erro;
+  }
 }
 
 document.getElementById('btn-sair').addEventListener('click', () => {
@@ -142,7 +160,7 @@ function preencherSelect(idSelect, valores) {
 // ================= LISTAGEM DE PERMUTAS =================
 async function carregarPermutas(filtro = {}) {
   // ordenarPor: 'criado_desc' faz a última permuta cadastrada aparecer primeiro na tela
-  cachePermutas = await chamarApi('listPermutas', { ordenarPor: 'criado_desc', ...filtro });
+  cachePermutas = (await chamarApi('listPermutas', { ordenarPor: 'criado_desc', ...filtro })) || [];
   renderizarTabelaPermutas();
   atualizarDestaqueHoje();
 }
@@ -219,6 +237,7 @@ document.getElementById('btn-cancelar-permuta').addEventListener('click', () => 
 function abrirModalPermuta(id) {
   document.getElementById('form-permuta').reset();
   document.getElementById('permuta-id').value = '';
+  document.getElementById('permuta-novo-id').value = id ? '' : gerarIdCliente();
   document.getElementById('permuta-escalado-valor').value = '';
   document.getElementById('permuta-substituto-valor').value = '';
   document.getElementById('modal-permuta-titulo').textContent = id ? 'Editar Permuta' : 'Nova Permuta';
@@ -244,6 +263,7 @@ document.getElementById('form-permuta').addEventListener('submit', async (ev) =>
   const id = document.getElementById('permuta-id').value;
   const payload = {
     id,
+    idClienteNovo: id ? undefined : document.getElementById('permuta-novo-id').value,
     data: isoParaBR(document.getElementById('permuta-data').value),
     posto: document.getElementById('permuta-posto').value,
     turno: document.getElementById('permuta-turno').value,
@@ -319,22 +339,14 @@ async function gerarEBaixarPdf(action, botao) {
   const payload = { dataInicio: isoParaBR(ini), dataFim: isoParaBR(fim || ini) };
 
   try {
-    let dados;
-    try {
-      dados = await chamarApi(action, payload);
-    } catch (primeiroErro) {
-      // Primeira chamada após o script ficar inativo pode demorar ou falhar (cold start do Apps Script).
-      // Tenta uma segunda vez automaticamente antes de mostrar erro ao usuário.
-      botao.textContent = 'Ainda gerando, tentando novamente...';
-      dados = await chamarApi(action, payload);
-    }
+    const dados = await chamarApi(action, payload);
     if (!dados || !dados.base64) throw new Error('O servidor não retornou o PDF corretamente.');
     const link = document.createElement('a');
     link.href = 'data:application/pdf;base64,' + dados.base64;
     link.download = dados.nomeArquivo;
     link.click();
   } catch (e) {
-    alert('Erro ao gerar PDF: ' + e.message + '\n\nSe o erro persistir, aguarde alguns segundos e tente novamente — o Google às vezes demora para "acordar" o script depois de um tempo parado.');
+    alert('Erro ao gerar PDF: ' + e.message);
   } finally {
     botao.disabled = false;
     botao.textContent = textoOriginal;
@@ -345,7 +357,7 @@ document.getElementById('btn-pdf-combinado').addEventListener('click', (ev) => g
 
 // ================= LISTAGEM DE FOLGAS =================
 async function carregarFolgas(filtro = {}) {
-  cacheFolgas = await chamarApi('listFolgas', { ordenarPor: 'criado_desc', ...filtro });
+  cacheFolgas = (await chamarApi('listFolgas', { ordenarPor: 'criado_desc', ...filtro })) || [];
   renderizarTabelaFolgas();
   atualizarDestaqueHoje();
 }
@@ -386,6 +398,7 @@ document.getElementById('btn-cancelar-folga').addEventListener('click', () => mo
 function abrirModalFolga(id) {
   document.getElementById('form-folga').reset();
   document.getElementById('folga-id').value = '';
+  document.getElementById('folga-novo-id').value = id ? '' : gerarIdCliente();
   document.getElementById('folga-qra-valor').value = '';
   document.getElementById('modal-folga-titulo').textContent = id ? 'Editar Folga' : 'Nova Folga';
 
@@ -406,6 +419,7 @@ document.getElementById('form-folga').addEventListener('submit', async (ev) => {
   const id = document.getElementById('folga-id').value;
   const payload = {
     id,
+    idClienteNovo: id ? undefined : document.getElementById('folga-novo-id').value,
     qra: document.getElementById('folga-qra-valor').value,
     data: isoParaBR(document.getElementById('folga-data').value),
     posto: document.getElementById('folga-posto').value,
