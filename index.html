@@ -42,6 +42,7 @@
 
   <nav class="abas">
     <button data-aba="permutas" class="ativa">Permutas</button>
+    <button data-aba="folgas">Folgas</button>
     <button data-aba="admin" id="aba-admin-botao" class="hidden">Painel Admin</button>
   </nav>
 
@@ -81,6 +82,25 @@
             </tr>
           </thead>
           <tbody id="corpo-tabela-permutas"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ---------- ABA FOLGAS ---------- -->
+    <section id="secao-folgas" class="hidden">
+      <div class="barra-acoes">
+        <label>De: <input type="date" id="filtro-folga-data-inicio"></label>
+        <label>Até: <input type="date" id="filtro-folga-data-fim"></label>
+        <button class="btn-secundario" id="btn-filtrar-folgas">Filtrar</button>
+        <button class="btn-secundario" id="btn-limpar-filtro-folgas">Limpar filtro</button>
+        <button class="btn-principal" id="btn-nova-folga">+ Nova Folga</button>
+      </div>
+      <div class="tabela-wrapper">
+        <table class="tabela-dados">
+          <thead>
+            <tr><th>Data</th><th>QRA</th><th>Posto</th><th>Observação</th><th></th></tr>
+          </thead>
+          <tbody id="corpo-tabela-folgas"></tbody>
         </table>
       </div>
     </section>
@@ -173,6 +193,38 @@
       </div>
       <div class="modal-acoes">
         <button type="button" class="btn-secundario" id="btn-cancelar-permuta">Cancelar</button>
+        <button type="submit" class="btn-principal">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===================== MODAL — NOVA/EDITAR FOLGA ===================== -->
+<div id="modal-folga" class="overlay hidden">
+  <div class="modal">
+    <h2 id="modal-folga-titulo">Nova Folga</h2>
+    <form id="form-folga">
+      <input type="hidden" id="folga-id">
+      <div class="campo">
+        <label>QRA</label>
+        <input type="text" id="folga-qra-busca" placeholder="Digite para buscar..." autocomplete="off" required>
+        <input type="hidden" id="folga-qra-valor">
+        <div class="autocomplete-lista hidden" id="lista-autocomplete-folga-qra"></div>
+      </div>
+      <div class="campo">
+        <label>Data</label>
+        <input type="date" id="folga-data" required>
+      </div>
+      <div class="campo">
+        <label>Posto</label>
+        <select id="folga-posto" required></select>
+      </div>
+      <div class="campo">
+        <label>Observação</label>
+        <input type="text" id="folga-observacao" placeholder="Opcional">
+      </div>
+      <div class="modal-acoes">
+        <button type="button" class="btn-secundario" id="btn-cancelar-folga">Cancelar</button>
         <button type="submit" class="btn-principal">Salvar</button>
       </div>
     </form>

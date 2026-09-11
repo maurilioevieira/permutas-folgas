@@ -15,6 +15,7 @@ let cacheTurnos = [];
 let cacheRecebidoPor = [];
 let cacheFuncionarios = [];
 let cachePermutas = [];
+let cacheFolgas = [];
 
 // ---------- COMUNICAÇÃO COM O BACKEND ----------
 async function chamarApi(action, payload = {}) {
@@ -102,6 +103,7 @@ function entrarNoApp() {
   }
   carregarListasBase();
   carregarPermutas();
+  carregarFolgas();
 }
 
 if (usuario) entrarNoApp();
@@ -112,6 +114,7 @@ document.querySelectorAll('nav.abas button[data-aba]').forEach(btn => {
     document.querySelectorAll('nav.abas button').forEach(b => b.classList.remove('ativa'));
     btn.classList.add('ativa');
     document.getElementById('secao-permutas').classList.toggle('hidden', btn.dataset.aba !== 'permutas');
+    document.getElementById('secao-folgas').classList.toggle('hidden', btn.dataset.aba !== 'folgas');
     document.getElementById('secao-admin').classList.toggle('hidden', btn.dataset.aba !== 'admin');
     if (btn.dataset.aba === 'admin') renderizarAdmin();
   });
@@ -128,6 +131,7 @@ async function carregarListasBase() {
   preencherSelect('permuta-posto', cachePostos);
   preencherSelect('permuta-turno', cacheTurnos.map(t => t.TURNO));
   preencherSelect('permuta-recebido-por', cacheRecebidoPor);
+  preencherSelect('folga-posto', cachePostos);
 }
 
 function preencherSelect(idSelect, valores) {
@@ -320,6 +324,97 @@ async function gerarEBaixarPdf(action) {
 }
 document.getElementById('btn-pdf-permutas').addEventListener('click', () => gerarEBaixarPdf('gerarPdfPermutas'));
 document.getElementById('btn-pdf-combinado').addEventListener('click', () => gerarEBaixarPdf('gerarPdfPermutasFolgas'));
+
+// ================= LISTAGEM DE FOLGAS =================
+async function carregarFolgas(filtro = {}) {
+  cacheFolgas = await chamarApi('listFolgas', { ordenarPor: 'criado_desc', ...filtro });
+  renderizarTabelaFolgas();
+  atualizarDestaqueHoje();
+}
+
+function renderizarTabelaFolgas() {
+  const corpo = document.getElementById('corpo-tabela-folgas');
+  if (cacheFolgas.length === 0) {
+    corpo.innerHTML = '<tr><td colspan="5" class="mensagem-vazio">Nenhuma folga encontrada.</td></tr>';
+    return;
+  }
+  corpo.innerHTML = cacheFolgas.map(f => `
+    <tr>
+      <td>${f.DATA}</td><td>${f.QRA}</td><td>${f.POSTO}</td><td>${f.OBSERVACAO || ''}</td>
+      <td>
+        <button class="btn-secundario" onclick="abrirModalFolga('${f.ID}')">Editar</button>
+        <button class="btn-perigo" onclick="excluirFolga('${f.ID}')">Excluir</button>
+      </td>
+    </tr>`).join('');
+}
+
+document.getElementById('btn-filtrar-folgas').addEventListener('click', () => {
+  const ini = document.getElementById('filtro-folga-data-inicio').value;
+  const fim = document.getElementById('filtro-folga-data-fim').value;
+  carregarFolgas({ dataInicio: isoParaBR(ini), dataFim: isoParaBR(fim || ini) });
+});
+document.getElementById('btn-limpar-filtro-folgas').addEventListener('click', () => {
+  document.getElementById('filtro-folga-data-inicio').value = '';
+  document.getElementById('filtro-folga-data-fim').value = '';
+  carregarFolgas();
+});
+
+// ================= MODAL DE FOLGA (NOVA / EDITAR) =================
+const modalFolga = document.getElementById('modal-folga');
+
+document.getElementById('btn-nova-folga').addEventListener('click', () => abrirModalFolga(null));
+document.getElementById('btn-cancelar-folga').addEventListener('click', () => modalFolga.classList.add('hidden'));
+
+function abrirModalFolga(id) {
+  document.getElementById('form-folga').reset();
+  document.getElementById('folga-id').value = '';
+  document.getElementById('folga-qra-valor').value = '';
+  document.getElementById('modal-folga-titulo').textContent = id ? 'Editar Folga' : 'Nova Folga';
+
+  if (id) {
+    const f = cacheFolgas.find(x => x.ID === id);
+    document.getElementById('folga-id').value = f.ID;
+    document.getElementById('folga-qra-busca').value = f.QRA;
+    document.getElementById('folga-qra-valor').value = f.QRA;
+    document.getElementById('folga-data').value = brParaIso(f.DATA);
+    document.getElementById('folga-posto').value = f.POSTO;
+    document.getElementById('folga-observacao').value = f.OBSERVACAO || '';
+  }
+  modalFolga.classList.remove('hidden');
+}
+
+document.getElementById('form-folga').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const id = document.getElementById('folga-id').value;
+  const payload = {
+    id,
+    qra: document.getElementById('folga-qra-valor').value,
+    data: isoParaBR(document.getElementById('folga-data').value),
+    posto: document.getElementById('folga-posto').value,
+    observacao: document.getElementById('folga-observacao').value,
+    usuarioNome: usuario.nome
+  };
+  try {
+    if (id) await chamarApi('editFolga', payload);
+    else await chamarApi('addFolga', payload);
+    modalFolga.classList.add('hidden');
+    await carregarFolgas();
+  } catch (e) {
+    alert('Erro ao salvar: ' + e.message);
+  }
+});
+
+async function excluirFolga(id) {
+  if (!confirm('Tem certeza que deseja excluir esta folga?')) return;
+  try {
+    await chamarApi('deleteFolga', { id });
+    await carregarFolgas();
+  } catch (e) {
+    alert('Erro ao excluir: ' + e.message);
+  }
+}
+
+configurarAutocomplete('folga-qra-busca', 'folga-qra-valor', 'lista-autocomplete-folga-qra');
 
 // ================= PAINEL ADMIN =================
 function renderizarAdmin() {
