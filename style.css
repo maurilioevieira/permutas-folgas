@@ -440,3 +440,17 @@ table.tabela-dados tr:hover { background: #faf8f2; }
   height: 40px;
   padding: 0 12px;
 }
+
+/* ---------- BARRA DE STATUS DE CARREGAMENTO ---------- */
+
+.status-carregamento {
+  background: #FFF3CD;
+  color: #6b5b1e;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  font-size: 14px;
+  border-bottom: 2px solid #E6C860;
+}

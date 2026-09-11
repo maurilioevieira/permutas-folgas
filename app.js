@@ -18,7 +18,12 @@ let cachePermutas = [];
 let cacheFolgas = [];
 
 // ---------- COMUNICAÇÃO COM O BACKEND ----------
-async function chamarApi(action, payload = {}, tentandoNovamente = false) {
+// O Apps Script pode demorar para "acordar" após ficar inativo (cold start).
+// Tenta até 3 vezes no total, com uma pequena espera crescente entre as tentativas,
+// antes de reportar erro ao usuário.
+const ATRASOS_TENTATIVA_MS = [0, 1500, 3000];
+
+async function chamarApi(action, payload = {}, tentativa = 0) {
   if (usuario) payload.pin = usuario.pin;
   try {
     const resp = await fetch(API_URL, {
@@ -30,9 +35,10 @@ async function chamarApi(action, payload = {}, tentandoNovamente = false) {
     if (!json.ok) throw new Error(json.erro || 'Erro desconhecido.');
     return json.data;
   } catch (erro) {
-    // O Apps Script pode falhar na primeira chamada após ficar inativo ("cold start").
-    // Tenta uma segunda vez automaticamente antes de reportar erro ao usuário.
-    if (!tentandoNovamente) return chamarApi(action, payload, true);
+    if (tentativa < ATRASOS_TENTATIVA_MS.length - 1) {
+      await new Promise(r => setTimeout(r, ATRASOS_TENTATIVA_MS[tentativa + 1]));
+      return chamarApi(action, payload, tentativa + 1);
+    }
     throw erro;
   }
 }
@@ -89,7 +95,7 @@ async function tentarLogin() {
 }
 
 // login não usa `usuario.pin` (ainda não existe), então chama a API direto
-async function chamarApiSemAuth(action, payload, tentandoNovamente = false) {
+async function chamarApiSemAuth(action, payload, tentativa = 0) {
   try {
     const resp = await fetch(API_URL, {
       method: 'POST',
@@ -100,7 +106,10 @@ async function chamarApiSemAuth(action, payload, tentandoNovamente = false) {
     if (!json.ok) throw new Error(json.erro || 'Erro desconhecido.');
     return json.data;
   } catch (erro) {
-    if (!tentandoNovamente) return chamarApiSemAuth(action, payload, true);
+    if (tentativa < ATRASOS_TENTATIVA_MS.length - 1) {
+      await new Promise(r => setTimeout(r, ATRASOS_TENTATIVA_MS[tentativa + 1]));
+      return chamarApiSemAuth(action, payload, tentativa + 1);
+    }
     throw erro;
   }
 }
@@ -119,10 +128,34 @@ function entrarNoApp() {
   if (usuario.nivel === 'admin') {
     document.getElementById('aba-admin-botao').classList.remove('hidden');
   }
-  carregarListasBase();
-  carregarPermutas();
-  carregarFolgas();
+  carregarDadosIniciais();
 }
+
+async function carregarDadosIniciais() {
+  mostrarStatusCarregamento('Carregando dados...', false);
+  try {
+    await carregarListasBase();
+    await Promise.all([carregarPermutas(), carregarFolgas()]);
+    ocultarStatusCarregamento();
+  } catch (e) {
+    mostrarStatusCarregamento(
+      'Não foi possível carregar os dados agora — o sistema pode estar "acordando" depois de um tempo parado. Aguarde alguns segundos e tente de novo.',
+      true
+    );
+  }
+}
+
+function mostrarStatusCarregamento(texto, comBotao) {
+  document.getElementById('status-carregamento-texto').textContent = texto;
+  document.getElementById('btn-tentar-novamente-carregamento').classList.toggle('hidden', !comBotao);
+  document.getElementById('status-carregamento').classList.remove('hidden');
+}
+
+function ocultarStatusCarregamento() {
+  document.getElementById('status-carregamento').classList.add('hidden');
+}
+
+document.getElementById('btn-tentar-novamente-carregamento').addEventListener('click', carregarDadosIniciais);
 
 if (usuario) entrarNoApp();
 
