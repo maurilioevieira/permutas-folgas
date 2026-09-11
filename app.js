@@ -133,8 +133,10 @@ document.querySelectorAll('nav.abas button[data-aba]').forEach(btn => {
     btn.classList.add('ativa');
     document.getElementById('secao-permutas').classList.toggle('hidden', btn.dataset.aba !== 'permutas');
     document.getElementById('secao-folgas').classList.toggle('hidden', btn.dataset.aba !== 'folgas');
+    document.getElementById('secao-hp').classList.toggle('hidden', btn.dataset.aba !== 'hp');
     document.getElementById('secao-admin').classList.toggle('hidden', btn.dataset.aba !== 'admin');
     if (btn.dataset.aba === 'admin') renderizarAdmin();
+    if (btn.dataset.aba === 'hp') carregarRankingHP();
   });
 });
 
@@ -199,6 +201,18 @@ function renderizarListaDestaque(idLista, itens, formatador) {
   ul.innerHTML = itens.map(i => `<li>${formatador(i)}</li>`).join('');
 }
 
+// ================= SELO DE COR DO HP =================
+// Verde até 119h, laranja exatamente em 120h (limite mensal), vermelho acima de 120h (atenção).
+function classeHP(hp) {
+  const valor = Number(hp) || 0;
+  if (valor > 120) return 'hp-vermelho';
+  if (valor === 120) return 'hp-laranja';
+  return 'hp-verde';
+}
+function badgeHP(hp) {
+  return `<span class="hp-selo ${classeHP(hp)}">${hp}</span>`;
+}
+
 function renderizarTabelaPermutas() {
   const corpo = document.getElementById('corpo-tabela-permutas');
   if (cachePermutas.length === 0) {
@@ -208,7 +222,7 @@ function renderizarTabelaPermutas() {
   corpo.innerHTML = cachePermutas.map(p => `
     <tr>
       <td>${p.DATA}</td><td>${p.POSTO}</td><td>${p.TURNO}</td>
-      <td>${p.ESCALADO}</td><td>${p.SUBSTITUTO}</td><td>${p.HP}</td>
+      <td>${p.ESCALADO}</td><td>${p.SUBSTITUTO}</td><td>${badgeHP(p.HP)}</td>
       <td>${p.RECEBIDO || ''}</td><td>${p.RECEBIDO_POR || ''}</td>
       <td>
         <button class="btn-secundario" onclick="abrirModalPermuta('${p.ID}')">Editar</button>
@@ -447,6 +461,34 @@ async function excluirFolga(id) {
 }
 
 configurarAutocomplete('folga-qra-busca', 'folga-qra-valor', 'lista-autocomplete-folga-qra');
+
+// ================= RANKING DE HP =================
+function inicializarFiltroMesHP() {
+  const input = document.getElementById('filtro-hp-mes');
+  if (!input.value) {
+    const hoje = new Date();
+    input.value = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
+  }
+}
+
+async function carregarRankingHP() {
+  inicializarFiltroMesHP();
+  const [ano, mes] = document.getElementById('filtro-hp-mes').value.split('-');
+  const ranking = await chamarApi('listRankingHP', { ano: Number(ano), mes: Number(mes) - 1 }) || [];
+  const corpo = document.getElementById('corpo-tabela-hp');
+  if (ranking.length === 0) {
+    corpo.innerHTML = '<tr><td colspan="3" class="mensagem-vazio">Nenhuma permuta neste mês.</td></tr>';
+    return;
+  }
+  corpo.innerHTML = ranking.map((r, i) => `
+    <tr>
+      <td>${i + 1}º</td>
+      <td>${r.escalado}</td>
+      <td>${badgeHP(r.hp)}</td>
+    </tr>`).join('');
+}
+
+document.getElementById('btn-ver-ranking-hp').addEventListener('click', carregarRankingHP);
 
 // ================= PAINEL ADMIN =================
 function renderizarAdmin() {

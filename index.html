@@ -43,6 +43,7 @@
   <nav class="abas">
     <button data-aba="permutas" class="ativa">Permutas</button>
     <button data-aba="folgas">Folgas</button>
+    <button data-aba="hp">HP</button>
     <button data-aba="admin" id="aba-admin-botao" class="hidden">Painel Admin</button>
   </nav>
 
@@ -101,6 +102,27 @@
             <tr><th>Data</th><th>QRA</th><th>Posto</th><th>Observação</th><th></th></tr>
           </thead>
           <tbody id="corpo-tabela-folgas"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ---------- ABA HP (RANKING) ---------- -->
+    <section id="secao-hp" class="hidden">
+      <div class="barra-acoes">
+        <label>Mês: <input type="month" id="filtro-hp-mes"></label>
+        <button class="btn-secundario" id="btn-ver-ranking-hp">Ver ranking</button>
+      </div>
+      <p style="font-size:13px; color:#666; margin-top:-6px;">
+        <span class="hp-selo hp-verde">até 119h</span>
+        <span class="hp-selo hp-laranja">120h</span>
+        <span class="hp-selo hp-vermelho">acima de 120h</span>
+      </p>
+      <div class="tabela-wrapper">
+        <table class="tabela-dados">
+          <thead>
+            <tr><th>#</th><th>Agente (Escalado)</th><th>HP no mês</th></tr>
+          </thead>
+          <tbody id="corpo-tabela-hp"></tbody>
         </table>
       </div>
     </section>

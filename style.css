@@ -400,3 +400,19 @@ table.tabela-dados tr:hover { background: #faf8f2; }
 .form-inline input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: var(--radius); font-size: 15px; }
 
 .mensagem-vazio { color: #888; font-style: italic; font-size: 15px; padding: 10px 0; }
+
+/* ---------- SELOS DE HP (verde até 119h, laranja em 120h, vermelho acima de 120h) ---------- */
+
+.hp-selo {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-weight: bold;
+  font-size: 13px;
+  min-width: 28px;
+  text-align: center;
+}
+
+.hp-verde { background: #DFF5DF; color: #1a5c1a; }
+.hp-laranja { background: #FFDCA0; color: #7a4a00; }
+.hp-vermelho { background: #C0392B; color: #ffffff; }
