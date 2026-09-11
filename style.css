@@ -150,6 +150,41 @@ nav.abas button.ativa {
   font-weight: bold;
 }
 
+.destaque-hoje {
+  background: linear-gradient(135deg, var(--gold-light), var(--gold));
+  border-bottom: 3px solid var(--navy);
+  padding: 14px 20px 18px;
+}
+
+.destaque-titulo {
+  font-weight: bold;
+  color: var(--navy-dark);
+  font-size: 17px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.destaque-colunas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+  max-width: 1100px;
+  margin: 10px auto 0;
+}
+
+.destaque-colunas h4 {
+  margin: 0 0 6px;
+  color: var(--navy-dark);
+  font-size: 15px;
+}
+
+.destaque-colunas .lista-simples li {
+  border-bottom: 1px solid rgba(26,43,94,0.2);
+  color: var(--navy-dark);
+  display: block;
+  padding: 5px 0;
+}
+
 main.conteudo {
   flex: 1;
   padding: 20px;

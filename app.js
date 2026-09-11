@@ -5,7 +5,7 @@
  * IMPORTANTE: substitua API_URL abaixo pela URL da implantação do seu Apps Script
  * (Implantar > Nova implantação > Aplicativo da Web > copiar URL).
  */
-const API_URL = 'https://script.google.com/macros/s/AKfycbyXdzgDFlPB1g0xrKS9veWOScBXSP96f4FMuJ_13Rd1OXfMyqHcgfil5Jw5sjHFMsyH/exec';
+const API_URL = 'COLE_AQUI_A_URL_DO_SEU_APPS_SCRIPT';
 
 // ---------- ESTADO GLOBAL ----------
 let usuario = JSON.parse(localStorage.getItem('permutas_usuario') || 'null');
@@ -137,8 +137,44 @@ function preencherSelect(idSelect, valores) {
 
 // ================= LISTAGEM DE PERMUTAS =================
 async function carregarPermutas(filtro = {}) {
-  cachePermutas = await chamarApi('listPermutas', filtro);
+  // ordenarPor: 'criado_desc' faz a última permuta cadastrada aparecer primeiro na tela
+  cachePermutas = await chamarApi('listPermutas', { ordenarPor: 'criado_desc', ...filtro });
   renderizarTabelaPermutas();
+  atualizarDestaqueHoje();
+}
+
+// ================= DESTAQUE DO DIA (permutas e folgas de hoje) =================
+function dataHojeBR() {
+  const d = new Date();
+  const dia = String(d.getDate()).padStart(2, '0');
+  const mes = String(d.getMonth() + 1).padStart(2, '0');
+  return `${dia}/${mes}/${d.getFullYear()}`;
+}
+
+async function atualizarDestaqueHoje() {
+  const hoje = dataHojeBR();
+  document.getElementById('destaque-data').textContent = hoje;
+  try {
+    const [permutasHoje, folgasHoje] = await Promise.all([
+      chamarApi('listPermutas', { dataInicio: hoje, dataFim: hoje }),
+      chamarApi('listFolgas', { dataInicio: hoje, dataFim: hoje })
+    ]);
+    renderizarListaDestaque('lista-permutas-hoje', permutasHoje,
+      p => `${p.POSTO} — ${p.TURNO} · Escalado: ${p.ESCALADO} → Substituto: ${p.SUBSTITUTO}`);
+    renderizarListaDestaque('lista-folgas-hoje', folgasHoje,
+      f => `${f.QRA} — ${f.POSTO}${f.OBSERVACAO ? ' · ' + f.OBSERVACAO : ''}`);
+  } catch (e) {
+    console.error('Erro ao carregar destaque do dia:', e);
+  }
+}
+
+function renderizarListaDestaque(idLista, itens, formatador) {
+  const ul = document.getElementById(idLista);
+  if (!itens || itens.length === 0) {
+    ul.innerHTML = '<li class="mensagem-vazio">Nenhum registro para hoje.</li>';
+    return;
+  }
+  ul.innerHTML = itens.map(i => `<li>${formatador(i)}</li>`).join('');
 }
 
 function renderizarTabelaPermutas() {
