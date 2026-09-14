@@ -166,6 +166,7 @@ document.querySelectorAll('nav.abas button[data-aba]').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('nav.abas button').forEach(b => b.classList.remove('ativa'));
     btn.classList.add('ativa');
+    document.getElementById('secao-hoje').classList.toggle('hidden', btn.dataset.aba !== 'hoje');
     document.getElementById('secao-permutas').classList.toggle('hidden', btn.dataset.aba !== 'permutas');
     document.getElementById('secao-folgas').classList.toggle('hidden', btn.dataset.aba !== 'folgas');
     document.getElementById('secao-hp').classList.toggle('hidden', btn.dataset.aba !== 'hp');
@@ -173,6 +174,7 @@ document.querySelectorAll('nav.abas button[data-aba]').forEach(btn => {
     document.getElementById('secao-admin').classList.toggle('hidden', btn.dataset.aba !== 'admin');
     if (btn.dataset.aba === 'admin') renderizarAdmin();
     if (btn.dataset.aba === 'hp') carregarRankingHP();
+    if (btn.dataset.aba === 'hoje') atualizarPainelHoje();
   });
 });
 
@@ -206,10 +208,10 @@ async function carregarPermutas(filtro = {}) {
   // ordenarPor: 'criado_desc' faz a última permuta cadastrada aparecer primeiro na tela
   cachePermutas = (await chamarApi('listPermutas', { ordenarPor: 'criado_desc', ...filtro })) || [];
   renderizarTabelaPermutas();
-  atualizarDestaqueHoje();
+  atualizarPainelHoje();
 }
 
-// ================= DESTAQUE DO DIA (permutas e folgas de hoje) =================
+// ================= PAINEL "HOJE" (aba dedicada) =================
 function dataHojeBR() {
   const d = new Date();
   const dia = String(d.getDate()).padStart(2, '0');
@@ -217,30 +219,42 @@ function dataHojeBR() {
   return `${dia}/${mes}/${d.getFullYear()}`;
 }
 
-async function atualizarDestaqueHoje() {
+function dataHojeExtenso() {
+  const texto = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  return texto.charAt(0).toUpperCase() + texto.slice(1);
+}
+
+async function atualizarPainelHoje() {
   const hoje = dataHojeBR();
-  document.getElementById('destaque-data').textContent = hoje;
+  document.getElementById('hoje-data-extenso').textContent = dataHojeExtenso();
   try {
     const [permutasHoje, folgasHoje] = await Promise.all([
       chamarApi('listPermutas', { dataInicio: hoje, dataFim: hoje }),
       chamarApi('listFolgas', { dataInicio: hoje, dataFim: hoje })
     ]);
-    renderizarListaDestaque('lista-permutas-hoje', permutasHoje,
-      p => `${p.POSTO} — ${p.TURNO} · Escalado: ${p.ESCALADO} → Substituto: ${p.SUBSTITUTO}`);
-    renderizarListaDestaque('lista-folgas-hoje', folgasHoje,
-      f => `${f.QRA} — ${f.POSTO}${f.OBSERVACAO ? ' · ' + f.OBSERVACAO : ''}`);
+    document.getElementById('hoje-contagem-permutas').textContent = permutasHoje.length;
+    document.getElementById('hoje-contagem-folgas').textContent = folgasHoje.length;
+
+    renderizarListaHoje('hoje-lista-permutas', permutasHoje, 'permuta',
+      p => `${p.POSTO} — ${p.TURNO}`, p => `${p.ESCALADO} → ${p.SUBSTITUTO}`);
+    renderizarListaHoje('hoje-lista-folgas', folgasHoje, 'folga',
+      f => `${f.QRA} — ${f.POSTO}`, f => f.OBSERVACAO || 'Folga da escala');
   } catch (e) {
-    console.error('Erro ao carregar destaque do dia:', e);
+    console.error('Erro ao carregar painel do dia:', e);
   }
 }
 
-function renderizarListaDestaque(idLista, itens, formatador) {
-  const ul = document.getElementById(idLista);
+function renderizarListaHoje(idContainer, itens, classeExtra, formatarTitulo, formatarSub) {
+  const div = document.getElementById(idContainer);
   if (!itens || itens.length === 0) {
-    ul.innerHTML = '<li class="mensagem-vazio">Nenhum registro para hoje.</li>';
+    div.innerHTML = '<p class="painel-hoje-vazio">Nenhum registro para hoje.</p>';
     return;
   }
-  ul.innerHTML = itens.map(i => `<li>${formatador(i)}</li>`).join('');
+  div.innerHTML = itens.map(i => `
+    <div class="painel-hoje-item ${classeExtra}">
+      <p class="painel-hoje-item-titulo">${formatarTitulo(i)}</p>
+      <p class="painel-hoje-item-sub">${formatarSub(i)}</p>
+    </div>`).join('');
 }
 
 // ================= SELO DE COR DO HP =================
@@ -509,7 +523,7 @@ document.getElementById('btn-pdf-combinado').addEventListener('click', (ev) => g
 async function carregarFolgas(filtro = {}) {
   cacheFolgas = (await chamarApi('listFolgas', { ordenarPor: 'criado_desc', ...filtro })) || [];
   renderizarTabelaFolgas();
-  atualizarDestaqueHoje();
+  atualizarPainelHoje();
 }
 
 function renderizarTabelaFolgas() {

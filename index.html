@@ -41,7 +41,8 @@
   </header>
 
   <nav class="abas">
-    <button data-aba="permutas" class="ativa">Permutas</button>
+    <button data-aba="hoje" class="ativa">Hoje</button>
+    <button data-aba="permutas">Permutas</button>
     <button data-aba="folgas">Folgas</button>
     <button data-aba="hp">HP</button>
     <button data-aba="devendo">Devendo</button>
@@ -53,24 +54,43 @@
     <button id="btn-tentar-novamente-carregamento" class="btn-secundario hidden">Tentar novamente</button>
   </div>
 
-  <section id="destaque-hoje" class="destaque-hoje">
-    <div class="destaque-titulo">📌 Hoje — <span id="destaque-data"></span></div>
-    <div class="destaque-colunas">
-      <div>
-        <h4>Permutas de hoje</h4>
-        <ul class="lista-simples" id="lista-permutas-hoje"></ul>
-      </div>
-      <div>
-        <h4>Folgas previstas de hoje</h4>
-        <ul class="lista-simples" id="lista-folgas-hoje"></ul>
-      </div>
-    </div>
-  </section>
-
   <main class="conteudo">
 
+    <!-- ---------- ABA HOJE ---------- -->
+    <section id="secao-hoje">
+      <div class="painel-hoje">
+        <div class="painel-hoje-cabecalho">
+          <div>
+            <p class="painel-hoje-selo">PAINEL DO DIA</p>
+            <p class="painel-hoje-data" id="hoje-data-extenso">—</p>
+          </div>
+          <span class="painel-hoje-icone">🛡️</span>
+        </div>
+        <div class="painel-hoje-metricas">
+          <div class="painel-hoje-metrica">
+            <p class="painel-hoje-metrica-numero" id="hoje-contagem-permutas">0</p>
+            <p class="painel-hoje-metrica-label">Permutas hoje</p>
+          </div>
+          <div class="painel-hoje-metrica">
+            <p class="painel-hoje-metrica-numero" id="hoje-contagem-folgas">0</p>
+            <p class="painel-hoje-metrica-label">Folgas hoje</p>
+          </div>
+        </div>
+        <div class="painel-hoje-colunas">
+          <div>
+            <p class="painel-hoje-coluna-titulo">🔁 Permutas</p>
+            <div id="hoje-lista-permutas"></div>
+          </div>
+          <div>
+            <p class="painel-hoje-coluna-titulo">🏖️ Folgas previstas</p>
+            <div id="hoje-lista-folgas"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- ---------- ABA PERMUTAS ---------- -->
-    <section id="secao-permutas">
+    <section id="secao-permutas" class="hidden">
       <div class="barra-acoes">
         <label>De: <input type="date" id="filtro-data-inicio"></label>
         <label>Até: <input type="date" id="filtro-data-fim"></label>

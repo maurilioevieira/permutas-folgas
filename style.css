@@ -150,40 +150,112 @@ nav.abas button.ativa {
   font-weight: bold;
 }
 
-.destaque-hoje {
-  background: #FBF6E8;
-  border-bottom: 3px solid var(--navy);
-  padding: 16px 20px 22px;
+/* ---------- PAINEL "HOJE" (aba dedicada — visual azul intenso) ---------- */
+
+.painel-hoje {
+  background: #152552;
+  border-radius: 12px;
+  padding: 24px;
+  color: #fff;
 }
 
-.destaque-titulo {
+.painel-hoje-cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.painel-hoje-selo {
+  font-size: 12px;
+  color: #D9BD6E;
+  margin: 0 0 4px;
   font-weight: bold;
-  color: var(--navy-dark);
-  font-size: 17px;
-  max-width: 1100px;
-  margin: 0 auto;
+  letter-spacing: 0.5px;
 }
 
-.destaque-colunas {
+.painel-hoje-data {
+  margin: 0;
+  font-size: 19px;
+  color: #fff;
+  font-weight: bold;
+}
+
+.painel-hoje-icone {
+  font-size: 28px;
+}
+
+.painel-hoje-metricas {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 28px;
-  max-width: 1100px;
-  margin: 14px auto 0;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin-bottom: 24px;
 }
 
-.destaque-colunas h4 {
+.painel-hoje-metrica {
+  background: rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 14px;
+  text-align: center;
+}
+
+.painel-hoje-metrica-numero {
+  margin: 0 0 2px;
+  font-size: 26px;
+  font-weight: bold;
+  color: #fff;
+}
+
+.painel-hoje-metrica-numero.destaque {
+  color: #D9BD6E;
+}
+
+.painel-hoje-metrica-label {
+  margin: 0;
+  font-size: 12px;
+  color: #B9C4E0;
+}
+
+.painel-hoje-colunas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 24px;
+}
+
+.painel-hoje-coluna-titulo {
+  font-size: 13px;
+  font-weight: bold;
+  color: #D9BD6E;
   margin: 0 0 10px;
-  color: var(--navy-dark);
-  font-size: 15px;
 }
 
-.destaque-colunas .lista-simples li {
-  border-bottom: 1px solid rgba(26,43,94,0.15);
-  color: var(--navy-dark);
-  display: block;
-  padding: 10px 0;
-  margin-bottom: 4px;
+.painel-hoje-item {
+  border-left: 3px solid #D9BD6E;
+  border-radius: 0;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  background: rgba(255,255,255,0.06);
+}
+
+.painel-hoje-item.folga { border-left-color: #6E8FD9; }
+
+.painel-hoje-item-titulo {
+  margin: 0;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.painel-hoje-item-sub {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #B9C4E0;
+}
+
+.painel-hoje-vazio {
+  font-style: italic;
+  color: #B9C4E0;
+  font-size: 13px;
+  margin: 0;
 }
 
 main.conteudo {
