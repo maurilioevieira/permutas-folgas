@@ -379,6 +379,21 @@ table.tabela-dados td {
 
 table.tabela-dados tr:hover { background: #faf8f2; }
 
+/* Botões de ação (Editar/Excluir) nas tabelas: mesmo tamanho, com pequena margem entre eles */
+.tabela-dados td:last-child {
+  display: flex;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.tabela-dados td:last-child button {
+  flex: 1;
+  min-width: 66px;
+  padding: 6px 10px;
+  font-size: 13px;
+  text-align: center;
+}
+
 /* ---------- MODAL ---------- */
 
 .overlay {
