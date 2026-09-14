@@ -13,9 +13,11 @@ let pinDigitado = '';
 let cachePostos = [];
 let cacheTurnos = [];
 let cacheRecebidoPor = [];
+let cacheAutorizadoPor = [];
 let cacheFuncionarios = [];
 let cachePermutas = [];
 let cacheFolgas = [];
+let cacheDevendo = [];
 
 // ---------- COMUNICAÇÃO COM O BACKEND ----------
 // O Apps Script pode demorar para "acordar" após ficar inativo (cold start).
@@ -135,7 +137,7 @@ async function carregarDadosIniciais() {
   mostrarStatusCarregamento('Carregando dados...', false);
   try {
     await carregarListasBase();
-    await Promise.all([carregarPermutas(), carregarFolgas()]);
+    await Promise.all([carregarPermutas(), carregarFolgas(), carregarDevendo()]);
     ocultarStatusCarregamento();
   } catch (e) {
     mostrarStatusCarregamento(
@@ -167,6 +169,7 @@ document.querySelectorAll('nav.abas button[data-aba]').forEach(btn => {
     document.getElementById('secao-permutas').classList.toggle('hidden', btn.dataset.aba !== 'permutas');
     document.getElementById('secao-folgas').classList.toggle('hidden', btn.dataset.aba !== 'folgas');
     document.getElementById('secao-hp').classList.toggle('hidden', btn.dataset.aba !== 'hp');
+    document.getElementById('secao-devendo').classList.toggle('hidden', btn.dataset.aba !== 'devendo');
     document.getElementById('secao-admin').classList.toggle('hidden', btn.dataset.aba !== 'admin');
     if (btn.dataset.aba === 'admin') renderizarAdmin();
     if (btn.dataset.aba === 'hp') carregarRankingHP();
@@ -175,10 +178,11 @@ document.querySelectorAll('nav.abas button[data-aba]').forEach(btn => {
 
 // ================= CARREGAR LISTAS BASE (postos, turnos, recebido por, funcionários) =================
 async function carregarListasBase() {
-  [cachePostos, cacheTurnos, cacheRecebidoPor, cacheFuncionarios] = await Promise.all([
+  [cachePostos, cacheTurnos, cacheRecebidoPor, cacheAutorizadoPor, cacheFuncionarios] = await Promise.all([
     chamarApi('listPostos'),
     chamarApi('listTurnos'),
     chamarApi('listRecebidoPor'),
+    chamarApi('listAutorizadoPor'),
     chamarApi('listFuncionarios')
   ]);
   preencherSelect('permuta-posto', cachePostos);
@@ -187,6 +191,9 @@ async function carregarListasBase() {
   preencherSelect('folga-posto', cachePostos);
   preencherSelect('lote-posto', cachePostos);
   preencherSelect('lote-recebido-por', cacheRecebidoPor);
+  preencherSelect('devendo-posto', cachePostos);
+  preencherSelect('devendo-turno', cacheTurnos.map(t => t.TURNO));
+  preencherSelect('devendo-autorizado-por', cacheAutorizadoPor);
 }
 
 function preencherSelect(idSelect, valores) {
@@ -591,6 +598,103 @@ async function excluirFolga(id) {
 
 configurarAutocomplete('folga-qra-busca', 'folga-qra-valor', 'lista-autocomplete-folga-qra');
 
+// ================= LISTAGEM DE DEVENDO =================
+async function carregarDevendo(filtro = {}) {
+  cacheDevendo = (await chamarApi('listDevendo', { ordenarPor: 'criado_desc', ...filtro })) || [];
+  renderizarTabelaDevendo();
+}
+
+function renderizarTabelaDevendo() {
+  const corpo = document.getElementById('corpo-tabela-devendo');
+  if (cacheDevendo.length === 0) {
+    corpo.innerHTML = '<tr><td colspan="7" class="mensagem-vazio">Nenhum registro encontrado.</td></tr>';
+    return;
+  }
+  corpo.innerHTML = cacheDevendo.map(d => `
+    <tr>
+      <td>${d.DATA}</td><td>${d.QRA}</td><td>${d.TURNO}</td><td>${d.POSTO}</td>
+      <td>${d.AUTORIZADO_POR || ''}</td><td>${d.OBSERVACAO || ''}</td>
+      <td>
+        <button class="btn-secundario" onclick="abrirModalDevendo('${d.ID}')">Editar</button>
+        <button class="btn-perigo" onclick="excluirDevendo('${d.ID}')">Excluir</button>
+      </td>
+    </tr>`).join('');
+}
+
+document.getElementById('btn-filtrar-devendo').addEventListener('click', () => {
+  const ini = document.getElementById('filtro-devendo-data-inicio').value;
+  const fim = document.getElementById('filtro-devendo-data-fim').value;
+  carregarDevendo({ dataInicio: isoParaBR(ini), dataFim: isoParaBR(fim || ini) });
+});
+document.getElementById('btn-limpar-filtro-devendo').addEventListener('click', () => {
+  document.getElementById('filtro-devendo-data-inicio').value = '';
+  document.getElementById('filtro-devendo-data-fim').value = '';
+  carregarDevendo();
+});
+
+// ================= MODAL DE DEVENDO (NOVO / EDITAR) =================
+const modalDevendo = document.getElementById('modal-devendo');
+
+document.getElementById('btn-nova-devendo').addEventListener('click', () => abrirModalDevendo(null));
+document.getElementById('btn-cancelar-devendo').addEventListener('click', () => modalDevendo.classList.add('hidden'));
+
+function abrirModalDevendo(id) {
+  document.getElementById('form-devendo').reset();
+  document.getElementById('devendo-id').value = '';
+  document.getElementById('devendo-novo-id').value = id ? '' : gerarIdCliente();
+  document.getElementById('devendo-qra-valor').value = '';
+  document.getElementById('modal-devendo-titulo').textContent = id ? 'Editar Devendo' : 'Novo Devendo';
+
+  if (id) {
+    const d = cacheDevendo.find(x => x.ID === id);
+    document.getElementById('devendo-id').value = d.ID;
+    document.getElementById('devendo-qra-busca').value = d.QRA;
+    document.getElementById('devendo-qra-valor').value = d.QRA;
+    document.getElementById('devendo-data').value = brParaIso(d.DATA);
+    document.getElementById('devendo-turno').value = d.TURNO;
+    document.getElementById('devendo-posto').value = d.POSTO;
+    document.getElementById('devendo-autorizado-por').value = d.AUTORIZADO_POR || '';
+    document.getElementById('devendo-observacao').value = d.OBSERVACAO || '';
+  }
+  modalDevendo.classList.remove('hidden');
+}
+
+document.getElementById('form-devendo').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const id = document.getElementById('devendo-id').value;
+  const payload = {
+    id,
+    idClienteNovo: id ? undefined : document.getElementById('devendo-novo-id').value,
+    qra: document.getElementById('devendo-qra-valor').value,
+    data: isoParaBR(document.getElementById('devendo-data').value),
+    turno: document.getElementById('devendo-turno').value,
+    posto: document.getElementById('devendo-posto').value,
+    autorizadoPor: document.getElementById('devendo-autorizado-por').value,
+    observacao: document.getElementById('devendo-observacao').value,
+    usuarioNome: usuario.nome
+  };
+  try {
+    if (id) await chamarApi('editDevendo', payload);
+    else await chamarApi('addDevendo', payload);
+    modalDevendo.classList.add('hidden');
+    await carregarDevendo();
+  } catch (e) {
+    alert('Erro ao salvar: ' + e.message);
+  }
+});
+
+async function excluirDevendo(id) {
+  if (!confirm('Tem certeza que deseja excluir este registro?')) return;
+  try {
+    await chamarApi('deleteDevendo', { id });
+    await carregarDevendo();
+  } catch (e) {
+    alert('Erro ao excluir: ' + e.message);
+  }
+}
+
+configurarAutocomplete('devendo-qra-busca', 'devendo-qra-valor', 'lista-autocomplete-devendo-qra');
+
 // ================= RANKING DE HP =================
 function inicializarFiltroMesHP() {
   const input = document.getElementById('filtro-hp-mes');
@@ -624,6 +728,7 @@ function renderizarAdmin() {
   renderizarListaAdmin('lista-postos', cachePostos, (valor) => excluirItemAdmin('deletePosto', { posto: valor }));
   renderizarListaAdmin('lista-turnos', cacheTurnos.map(t => `${t.TURNO} (${t.HORAS}h)`), null, cacheTurnos.map(t => t.TURNO), (valor) => excluirItemAdmin('deleteTurno', { turno: valor }));
   renderizarListaAdmin('lista-recebido-por', cacheRecebidoPor, (valor) => excluirItemAdmin('deleteRecebidoPor', { nome: valor }));
+  renderizarListaAdmin('lista-autorizado-por', cacheAutorizadoPor, (valor) => excluirItemAdmin('deleteAutorizadoPor', { nome: valor }));
   renderizarListaAdmin('lista-funcionarios', cacheFuncionarios.map(f => f.QRA), (valor) => excluirItemAdmin('deleteFuncionario', { qra: valor }));
 }
 
@@ -680,6 +785,17 @@ document.getElementById('form-add-recebido-por').addEventListener('submit', asyn
   const input = document.getElementById('input-novo-recebido-por');
   try {
     await chamarApi('addRecebidoPor', { nome: input.value.toUpperCase() });
+    input.value = '';
+    await carregarListasBase();
+    renderizarAdmin();
+  } catch (e) { alert('Erro: ' + e.message); }
+});
+
+document.getElementById('form-add-autorizado-por').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const input = document.getElementById('input-novo-autorizado-por');
+  try {
+    await chamarApi('addAutorizadoPor', { nome: input.value.toUpperCase() });
     input.value = '';
     await carregarListasBase();
     renderizarAdmin();

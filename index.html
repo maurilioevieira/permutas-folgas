@@ -44,6 +44,7 @@
     <button data-aba="permutas" class="ativa">Permutas</button>
     <button data-aba="folgas">Folgas</button>
     <button data-aba="hp">HP</button>
+    <button data-aba="devendo">Devendo</button>
     <button data-aba="admin" id="aba-admin-botao" class="hidden">Painel Admin</button>
   </nav>
 
@@ -133,6 +134,25 @@
       </div>
     </section>
 
+    <!-- ---------- ABA DEVENDO ---------- -->
+    <section id="secao-devendo" class="hidden">
+      <div class="barra-acoes">
+        <label>De: <input type="date" id="filtro-devendo-data-inicio"></label>
+        <label>Até: <input type="date" id="filtro-devendo-data-fim"></label>
+        <button class="btn-secundario" id="btn-filtrar-devendo">Filtrar</button>
+        <button class="btn-secundario" id="btn-limpar-filtro-devendo">Limpar filtro</button>
+        <button class="btn-principal" id="btn-nova-devendo">+ Novo Devendo</button>
+      </div>
+      <div class="tabela-wrapper">
+        <table class="tabela-dados">
+          <thead>
+            <tr><th>Data</th><th>QRA</th><th>Turno</th><th>Posto</th><th>Autorizado por</th><th>Observação</th><th></th></tr>
+          </thead>
+          <tbody id="corpo-tabela-devendo"></tbody>
+        </table>
+      </div>
+    </section>
+
     <!-- ---------- ABA ADMIN ---------- -->
     <section id="secao-admin" class="hidden">
       <div class="grid-admin">
@@ -160,6 +180,15 @@
           <ul class="lista-simples" id="lista-recebido-por"></ul>
           <form class="form-inline" id="form-add-recebido-por">
             <input type="text" id="input-novo-recebido-por" placeholder="Nome" required>
+            <button class="btn-principal" type="submit">+</button>
+          </form>
+        </div>
+
+        <div class="cartao-admin">
+          <h3>Autorizado por</h3>
+          <ul class="lista-simples" id="lista-autorizado-por"></ul>
+          <form class="form-inline" id="form-add-autorizado-por">
+            <input type="text" id="input-novo-autorizado-por" placeholder="Nome" required>
             <button class="btn-principal" type="submit">+</button>
           </form>
         </div>
@@ -303,6 +332,47 @@
       <div class="modal-acoes">
         <button type="button" class="btn-secundario" id="btn-cancelar-lote">Cancelar</button>
         <button type="submit" class="btn-principal">Salvar todas</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===================== MODAL — NOVO/EDITAR DEVENDO ===================== -->
+<div id="modal-devendo" class="overlay hidden">
+  <div class="modal">
+    <h2 id="modal-devendo-titulo">Novo Devendo</h2>
+    <form id="form-devendo">
+      <input type="hidden" id="devendo-id">
+      <input type="hidden" id="devendo-novo-id">
+      <div class="campo">
+        <label>QRA</label>
+        <input type="text" id="devendo-qra-busca" placeholder="Digite para buscar..." autocomplete="off" required>
+        <input type="hidden" id="devendo-qra-valor">
+        <div class="autocomplete-lista hidden" id="lista-autocomplete-devendo-qra"></div>
+      </div>
+      <div class="campo">
+        <label>Data da falta</label>
+        <input type="date" id="devendo-data" required>
+      </div>
+      <div class="campo">
+        <label>Turno</label>
+        <select id="devendo-turno" required></select>
+      </div>
+      <div class="campo">
+        <label>Posto</label>
+        <select id="devendo-posto" required></select>
+      </div>
+      <div class="campo">
+        <label>Autorizado por</label>
+        <select id="devendo-autorizado-por" required></select>
+      </div>
+      <div class="campo">
+        <label>Observação</label>
+        <input type="text" id="devendo-observacao" placeholder="Opcional — motivo, detalhes...">
+      </div>
+      <div class="modal-acoes">
+        <button type="button" class="btn-secundario" id="btn-cancelar-devendo">Cancelar</button>
+        <button type="submit" class="btn-principal">Salvar</button>
       </div>
     </form>
   </div>
