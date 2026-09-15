@@ -185,6 +185,12 @@ nav.abas button.ativa {
   font-size: 28px;
 }
 
+.painel-hoje-icone img {
+  height: 46px;
+  width: auto;
+  display: block;
+}
+
 .painel-hoje-metricas {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
